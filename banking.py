@@ -3,95 +3,6 @@ import sqlite3
 from string import digits
 
 
-def sql_query(query, path='card.s3db'):
-    connect = sqlite3.connect(path)
-    cursor = connect.cursor()
-    cursor.execute(query)
-    connect.commit()
-    connect.close()
-
-
-def create_table(name, path='card.s3db'):
-    query = f'''CREATE TABLE IF NOT EXISTS {name} (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                number TEXT UNIQUE,
-                pin TEXT,
-                balance INTEGER DEFAULT 0
-                );
-                '''
-    sql_query(query, path)
-
-
-def delete_table(name, path='card.s3db'):
-    query = f"DROP TABLE {name}"
-    sql_query(query, path)
-
-
-def loggin_user():
-    print("Enter your card number:")
-    number = input()
-    print("Enter your pin:")
-    pin = input()
-
-    connect = sqlite3.connect('card.s3db')
-    cursor = connect.cursor()
-    query = '''SELECT number, pin FROM card'''
-    cursor.execute(query)
-    result = dict([n for n in cursor.fetchall()])
-    connect.close()
-
-    if number in result and pin == result[number]:
-        user = Account()
-        user.card_number = number
-        print(f"\nYou have successfully logged in!\n")
-        log_on_menu(user)
-    else:
-        print("\nWrong card number or pin\n")
-
-
-def menu():
-    while True:
-        print("1. Create an account\n2. Log into account\n0. Exit")  # Main menu
-
-        choice = int(input())
-        print()
-
-        if choice == 1:
-            user = Account()
-            user.create_account()
-            del user
-        elif choice == 2:
-            loggin_user()
-        elif choice == 0:
-            print("Bye!")
-            break
-
-
-def log_on_menu(user):
-    while True:
-        print("1. Balance\n2. Add income\n3. Do transfer\n4. Close account\n5. Log out\n0. Exit")
-
-        choice = int(input())
-        if choice == 1:
-            print(f"\nYour balance is: {user.get_balance()}\n")
-        elif choice == 2:
-            user.income()
-        elif choice == 3:
-            print(user.transfer())
-        elif choice == 4:
-            print(user.delete_account())
-            del user
-            print()
-            break
-        elif choice == 5:
-            del user
-            print()
-            break
-        elif choice == 0:
-            print(f"Bye!\n")
-            exit()
-
-
 class Account:
     def __init__(self):
         self.iin = self.can = self.checksum = None
@@ -197,13 +108,108 @@ class Account:
         return '\nThe account has been closed!\n'
 
 
+def menu():
+    while True:
+        print("[1] Create an account\n[2] Log into account\n[0] Exit")  # Main menu
+
+        choice = int(input("--> "))
+        print()
+
+        if choice == 1:
+            user = Account()
+            user.create_account()
+            del user
+        elif choice == 2:
+            loggin_user()
+        elif choice == 0:
+            print("Bye!")
+            break
+
+
+def loggin_user():
+    print("Enter your card number:")
+    number = input()
+    print("Enter your pin:")
+    pin = input()
+
+    connect = sqlite3.connect('card.s3db')
+    cursor = connect.cursor()
+    query = '''SELECT number, pin FROM card'''
+    cursor.execute(query)
+    result = dict([n for n in cursor.fetchall()])
+    connect.close()
+
+    if number in result and pin == result[number]:
+        user = Account()
+        user.card_number = number
+        print(f"\nYou have successfully logged in!\n")
+        log_on_menu(user)
+    else:
+        print("\nWrong card number or pin\n")
+
+
+def log_on_menu(user):
+    while True:
+        print("[1] Check balance\n[2] Add income\n[3] Do transfer\n[4] Close account\n[5] Log out\n[0] Exit")
+
+        choice = int(input("--> "))
+        if choice == 1:
+            print(f"\nYour balance is: {user.get_balance()}\n")
+        elif choice == 2:
+            user.income()
+        elif choice == 3:
+            print(user.transfer())
+        elif choice == 4:
+            print(user.delete_account())
+            del user
+            print()
+            break
+        elif choice == 5:
+            del user
+            print()
+            break
+        elif choice == 0:
+            print(f"Bye!\n")
+            input("Press [Enter] to exit ")
+            exit()
+
+
+def sql_query(query, path='card.s3db'):
+    connect = sqlite3.connect(path)
+    cursor = connect.cursor()
+    cursor.execute(query)
+    connect.commit()
+    connect.close()
+
+
+def create_table(name, path='card.s3db'):
+    query = f'''CREATE TABLE IF NOT EXISTS {name} (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                number TEXT UNIQUE,
+                pin TEXT,
+                balance INTEGER DEFAULT 0
+                );
+                '''
+    sql_query(query, path)
+
+
+def delete_table(name, path='card.s3db'):
+    query = f"DROP TABLE {name}"
+    sql_query(query, path)
+
+
 # --------------------MAIN--------------------
 
-try:
-    delete_table('card', 'card.s3db')
-except sqlite3.OperationalError:
-    pass
+def start():
+    try:
+        delete_table('card', 'card.s3db')
+    except sqlite3.OperationalError:
+        pass
 
-create_table('card', 'card.s3db')
+    create_table('card', 'card.s3db')
 
-menu()
+    menu()
+
+
+if __name__ == "__main__":
+    start()
